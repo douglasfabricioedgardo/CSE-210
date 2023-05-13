@@ -9,7 +9,7 @@ public class RandomPrompt
     {5, "What would you like to remember about yourself?"},
     {6, "What has the Lord done for you this month?"},
     {7, "What do you like to tell your family about yourself?"},
-    {8, "what gosple principle do you appl today?"}
+    {8, "what gospel principle do you apply today?"}
 };
 
     public string Display()
