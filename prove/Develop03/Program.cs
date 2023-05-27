@@ -1,143 +1,148 @@
 using System;
-using System.Collections.Generic;
 
-namespace ScriptureMemory
+/***********************************************************************************************
+ - Showing Creativity and Exceeding Requirements
+
+ 1) This program work with a library of scriptures rather than a single one.
+ 2) This program loads scriptures from a file
+
+************************************************************************************************/
+class Program
 {
-    class Program
+    static void Main(string[] args)
     {
-        static void Main(string[] args)
-        {
-            var scriptures = new List<Scripture>()
+        int choice = -1;
+        do
+        {   
+            Console.Write("""
+            Would you like to:
+
+            1) Memorize A Random Scripture
+            2) Select A Preexisting Scripture From The Data Base
+            3) Add A New Scripture To The Database
+            0) Exit
+
+            Please Type The Number Corresponding With Your Choice: 
+            """);
+            
+            choice = int.Parse(Console.ReadLine());
+
+            switch(choice) 
             {
-                new Scripture("Alma 37:37", "Counsel with the Lord in all thy doings, and he will direct thee for bgood; yea, when thou liest down at night lie down unto the Lord, that he may watch over you in your sleep; and when thou risest in the cmorning let thy heart be full of thanks unto God; and if ye do these things, ye shall be lifted up at the last day."),
-                new Scripture("Moses 1:39", "For behold, this is my work and my glory—to bring to pass the immortality and eternal life of man."),
-                new Scripture("2 Nephi 2:25", "Adam fell that men might be; and men are, that they might have joy."),
-                new Scripture("Mosiah 2:17", "And behold, I tell you these things that ye may learn wisdom; that ye may learn that when ye are in the service of your fellow beings ye are only in the service of your God."),
-                new Scripture("1 Nephi 3:7", "And it came to pass that I, Nephi, said unto my father: I will go and do the things which the Lord hath commanded, for I know that the Lord giveth no bcommandments unto the children of men, save he shall prepare a way for them that they may accomplish the thing which he commandeth them."),
-                new Scripture("Amos 3:7", "Surely the Lord God will do nothing, but he revealeth his secret unto his servants the prophets.")
-            };
-
-            // choose a random scripture to present to the user
-            var random = new Random();
-            var scripture = scriptures[random.Next(scriptures.Count)];
-
-            // Create a new scripture and display it
-            DisplayScripture(scripture);
-
-            // Hide words from the scripture until all words are hidden or the user types "quit"
-            var hiddenWords = new List<Word>();
-            while (hiddenWords.Count < scripture.WordCount)
-            {
-                Console.WriteLine();
-                Console.WriteLine("Press Enter to hide more words, or type 'quit' to exit the program.");
-                var input = Console.ReadLine().ToLower();
-                if (input == "quit")
-                {
+                case 1:
+                    MemorizeRandom();
                     break;
-                }
-                else
-                {
-                    var word = scripture.HideRandomWord(hiddenWords);
-                    hiddenWords.Add(word);
-                    DisplayScripture(scripture, hiddenWords);
-                }
+                case 2:
+                    MemorizeSelected();
+                    break;
+                case 3:
+                    AddScriptureToDatabase();
+                    break;
+                case 0:
+                    // display good bye message
+                    Console.Clear();
+                    Console.WriteLine("Good Bye");
+                    break;
+                default:
+                    Console.Clear();
+                    Console.WriteLine("Please Select a correct value");
+                    break;
             }
+        }while (choice != 0);
+    }
 
-            // Display the complete scripture again before exiting
-            Console.WriteLine();
-            Console.WriteLine("Final Scripture:");
-            DisplayScripture(scripture);
+
+    public static void MemorizeRandom(){
+        Console.Clear();
+
+        Random random = new Random();
+        List<string> scripturLibrary = LoadLibrary();
+        int selectedIndex = random.Next(0, scripturLibrary.Count());
+        string[] selectedVerse = scripturLibrary[selectedIndex].Split("|");
+        Scripture scripture = new Scripture(selectedVerse[0], selectedVerse[1], selectedVerse[2], selectedVerse[3]);
+
+        MemorizeScripture(scripture);
+    }
+
+    public static void MemorizeSelected(){
+        Console.Clear();
+        List<string> scripturLibrary = LoadLibrary();
+        List<string> referenceList = new List<string>();
+        for (int i = 0; i < scripturLibrary.Count(); i++)
+        {
+            string[] parts = scripturLibrary[i].Split("|");
+            referenceList.Add($"{parts[0]} {parts[1]}:{parts[2]}");
+            Console.WriteLine($"{i + 1}) {referenceList[i]}");
         }
+        Console.Write("\nPlease type the number for the scripture reference you want to memorize: ");
+        string selectedReference = Console.ReadLine();
+        int selectedIndex = int.Parse(selectedReference) - 1;
+        string[] selectedVerse = scripturLibrary[selectedIndex].Split("|");
+        Scripture scripture = new Scripture(selectedVerse[0], selectedVerse[1], selectedVerse[2], selectedVerse[3]);
 
-        static void DisplayScripture(Scripture scripture, List<Word> hiddenWords = null)
+        MemorizeScripture(scripture);
+    }
+
+    public static void MemorizeScripture(Scripture scripture){
+        Console.Write("How many words would you like to have disapear each time?\nPlease enter an integer: ");
+        int difficulty = int.Parse(Console.ReadLine());
+        string userInput = "";
+        while(userInput != "quit")
         {
             Console.Clear();
-            Console.WriteLine(scripture.Reference);
-            Console.WriteLine();
-
-            foreach (var verse in scripture.Verses)
-            {
-                foreach (var word in verse.Words)
-                {
-                    if (hiddenWords != null && hiddenWords.Contains(word))
-                    {
-                        Console.Write("____ ");
-                    }
-                    else
-                    {
-                        Console.Write(word.Text + " ");
-                    }
-                }
-                Console.WriteLine();
+            Console.Write($"{scripture.GetRefrence()} -> ");
+            scripture.DisplayScripture();
+            if(!scripture.AllHidden()){
+                scripture.HideWords(difficulty);
+                Console.Write("\nPress ENTER to continue or type 'quit' to exit: ");
+                userInput = Console.ReadLine();
+            }else{
+                break;
             }
         }
+        if(userInput != "quit"){
+            Console.Write("\nPress any key to end memorization ");
+            Console.ReadKey();
+        }
+        Console.Clear();
     }
-}
 
-        class Scripture
-        {
-            public string Reference { get; }
-            public List<Verse> Verses { get; }
-            public int WordCount { get; }
+    public static void AddScriptureToDatabase(){
+        Console.Write("Type The Name Of The Book: ");
+        string newScripture = Console.ReadLine() + "|";
+        Console.Write("Type The Chapter Number: ");
+        newScripture += Console.ReadLine() + "|";
+        Console.Write("Type The Verse Number(s): (Ex. 5 or 2-7) ");
+        newScripture += Console.ReadLine() + "|";
+        Console.Write("Type Out The Verse(s): ");
+        newScripture += Console.ReadLine();
+        NewEntry(newScripture);
+        Console.Clear();
+        Console.WriteLine("Scripture added to database");
+        Console.WriteLine();
+    }
 
-            public Scripture(string reference, string text)
-            {
-                Reference = reference;
-                Verses = new List<Verse>();
-                var verseTexts = text.Split(';'); // split the text into verses, assuming semicolon as the separator
-                foreach (var verseText in verseTexts)
-                {
-                    Verses.Add(new Verse(verseText));
-                }
-                WordCount = GetWordCount();
-            }
-
-            int GetWordCount()
-            {
-                var count = 0;
-                foreach (var verse in Verses)
-                {
-                    count += verse.Words.Count;
-                }
-                return count;
-            }
-
-            public Word HideRandomWord(List<Word> excludedWords)
-            {
-                var random = new Random();
-                Word word;
-                do
-                {
-                    var verseIndex = random.Next(Verses.Count);
-                    var verse = Verses[verseIndex];
-                    var wordIndex = random.Next(verse.Words.Count);
-                    word = verse.Words[wordIndex];
-                } while (excludedWords.Contains(word));
-                return word;
-            }
-        }
-
-        class Verse
-{
-    public List<Word> Words { get; }
-
-    public Verse(string text)
+    public static List<string> LoadLibrary()
     {
-        Words = new List<Word>();
-        var wordTexts = text.Split(' '); // split the text into words, assuming space as the separator
-        foreach (var wordText in wordTexts)
+        List<string> library = new List<string>();
+        string[] lines = System.IO.File.ReadAllLines("ScripturLibrary.txt");
+        foreach (string line in lines)
         {
-            Words.Add(new Word(wordText));
+            library.Add(line);
+        }
+        return library;
+    }
+
+    public static void NewEntry(string newLine)
+    {
+        List<string> oldLibrary = LoadLibrary();
+        using (StreamWriter streamWriter = new StreamWriter("ScripturLibrary.txt"))
+        {
+            foreach (string entry in oldLibrary)
+            {
+                streamWriter.WriteLine(entry);
+            }
+            streamWriter.WriteLine(newLine);
         }
     }
 }
-
-        class Word
-        {
-            public string Text { get; }
-
-            public Word(string text)
-            {
-                Text = text;
-            }
-        }
