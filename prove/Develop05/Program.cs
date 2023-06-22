@@ -1,5 +1,6 @@
 using System;
 /***********************************************************************************************
+ Author: Douglas F. Ramirez
  - Showing Creativity and Exceeding Requirements
  1) a game class to handle all gamification features
  2)Game data can be stored to a file in data directory
